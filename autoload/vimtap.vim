@@ -40,11 +40,6 @@
 "##### [ }}} ]
 
 "##### PROLOG [ {{{ ]
-if exists("g:DidVimTAP") 
-	finish
-endif
-let g:DidVimTAP = 1
-
 let s:saved_cpo = &cpo
 set cpo&vim
 "##### [ }}} ]
@@ -59,6 +54,43 @@ let s:test_number = 0
 "##### [ }}} ]
 
 "##### FUNCTIONS [ {{{ ]
+function! s:Quote( expr )
+	if type(a:expr) == type("")
+		return "'" . strtrans(a:expr) . "'"
+	else
+		return string(a:expr)
+	endif
+endfunction
+
+function! vimtap#Output( filespec )
+	" Reset test numbering. 
+	let s:test_number = 0
+
+	let s:tapOutputFilespec = a:filespec
+	if ! empty(s:tapOutputFilespec)
+		" Convert to full path so that changes of CWD do not affect the test
+		" output. 
+		let s:tapOutputFilespec = fnamemodify(s:tapOutputFilespec, ':p')
+	endif
+endfunction
+
+function! s:Output( text )
+	if empty(s:tapOutputFilespec)
+		execute "normal i" . a:text . "\<CR>"
+	else
+		perl << EOF
+			my ($status, $tapfile) = VIM::Eval('s:tapOutputFilespec');
+			die "Didn't receive tap output filespec!" unless $status;
+			my ($status, $tapOutput) = VIM::Eval('a:text');
+			die "Didn't receive tap output!" unless $status;
+
+			open(TAP, '>>', $tapfile) or die "Cannot open tap output file: $!";
+			print TAP $tapOutput . "\n";
+			close(TAP);
+EOF
+	endif
+endfunction
+
 "### FUNCTION vimtap#Plan [ {{{ ]
 " Description:
 " Write the test plan to the output buffer.
@@ -67,8 +99,8 @@ let s:test_number = 0
 "   call vimtap#Plan(10)
 "
 " Source:
-function vimtap#Plan(tests)
-	execute printf("normal i1..%d\<CR>", a:tests)
+function! vimtap#Plan(tests)
+	call s:Output(printf("1..%d", a:tests))
 	let s:test_number = 1
 endfunction
 "### [ }}} ]
@@ -84,13 +116,13 @@ endfunction
 "   call vimtap#Ok(IsFoo(x), "x is Foo")
 "
 " Source:
-function vimtap#Ok(test_result, description)
+function! vimtap#Ok(test_result, description)
 	let result = a:test_result ? "ok" : "not ok"
 
-	execute printf("normal i%s %d - %s\<CR>", result, s:test_number,
-				\ a:description)
+	call s:Output(printf("%s %d - %s", result, s:test_number,
+				\ strtrans(a:description)))
 
-	let s:test_number = s:test_number + 1
+	let s:test_number += 1
 endfunction
 "### [ }}} ]
 "### FUNCTION vimtap#Is [ {{{ ]
@@ -103,14 +135,14 @@ endfunction
 "   call vimtap#Is(x, y, "x is equal to y")
 "
 " Source:
-function vimtap#Is(got, exp, description)
+function! vimtap#Is(got, exp, description)
 	let test_result = a:got == a:exp
 
 	call vimtap#Ok(test_result, a:description)
 	if !test_result
-		call vimtap#Diag("Test '" . a:description . "' failed:\n"
-					\ . "expected: '" . a:exp . "'\n"
-					\ . "but got:  '" . a:got . "'")
+		call vimtap#Diag("Test '" . strtrans(a:description) . "' failed:\n"
+					\ . "expected: " . s:Quote(a:exp) . "\n"
+					\ . "but got:  " . s:Quote(a:got) . "")
 	endif
 endfunction
 "### [ }}} ]
@@ -123,15 +155,14 @@ endfunction
 "   call vimtap#Isnt(x, y, "x is not equal to y")
 "
 " Source:
-function vimtap#Isnt(got, unexp, description)
+function! vimtap#Isnt(got, unexp, description)
 	let test_result = a:got != a:unexp
 
 	call vimtap#Ok(test_result, a:description)
 	if !test_result
-		call vimtap#Diag("Test '" . a:description . "' failed:\n"
-					\ . "got unexpected: '"
-					\ . a:got
-					\ . "'")
+		call vimtap#Diag("Test '" . strtrans(a:description) . "' failed:\n"
+					\ . "got unexpected: "
+					\ . s:Quote(a:got))
 	endif
 endfunction
 "### [ }}} ]
@@ -145,14 +176,14 @@ endfunction
 "   call vimtap#Like(x, '\d\d', "x has two-digit number")
 "
 " Source:
-function vimtap#Like(got, re, description)
+function! vimtap#Like(got, re, description)
 	let test_result = a:got =~ a:re
 
 	call vimtap#Ok(test_result, a:description)
 	if !test_result
-		call vimtap#Diag("Test '" . a:description . "' failed:\n"
-					\ . "got: '" . a:got . "'\n"
-					\ . "does not match: '" . a:re . "'")
+		call vimtap#Diag("Test '" . strtrans(a:description) . "' failed:\n"
+					\ . "got: " . s:Quote(a:got) . "\n"
+					\ . "does not match: /" . a:re . "/")
 	endif
 endfunction
 "### [ }}} ]
@@ -164,14 +195,14 @@ endfunction
 "   call vimtap#Unlike(x, '^\s*$', "x contains non-whitespace")
 "
 " Source:
-function vimtap#Unlike(got, re, description)
+function! vimtap#Unlike(got, re, description)
 	let test_result = a:got !~ a:re
 
 	call vimtap#Ok(test_result, a:description)
 	if !test_result
-		call vimtap#Diag("Test '" . a:description . "' failed:\n"
-					\ . "got: '" . a:got . "'\n"
-					\ . "does match: '" . a:re . "'")
+		call vimtap#Diag("Test '" . strtrans(a:description) . "' failed:\n"
+					\ . "got: " . s:Quote(a:got) . "\n"
+					\ . "does match: /" . a:re . "/")
 	endif
 endfunction
 "### [ }}} ]
@@ -183,9 +214,9 @@ endfunction
 "   call vimtap#Diag("Some Diagnostic Message")
 "
 " Source:
-function vimtap#Diag(str)
+function! vimtap#Diag(str)
 	for line in split(a:str, '\(\r\n\|\r\|\n\)', 1)
-		execute "normal i# " . line . "\<CR>"
+		call s:Output("# " . line)
 	endfor
 endfunction
 "### [ }}} ]
