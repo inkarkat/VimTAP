@@ -62,7 +62,12 @@ function! s:Quote( expr )
 	endif
 endfunction
 
+let s:tapOutputFilespec = ''
 function! vimtap#Output( filespec )
+	if ! empty(s:tapOutputFilespec) && ! has('perl')
+		call s:VimFlushOutput()
+	endif
+
 	" Reset test numbering. 
 	let s:test_number = 0
 
@@ -74,20 +79,43 @@ function! vimtap#Output( filespec )
 	endif
 endfunction
 
+function! s:PerlOutput( text )
+	perl << EOF
+		my ($status, $tapfile) = VIM::Eval('s:tapOutputFilespec');
+		die "Didn't receive tap output filespec!" unless $status;
+		my ($status, $tapOutput) = VIM::Eval('a:text');
+		die "Didn't receive tap output!" unless $status;
+
+		open(TAP, '>>', $tapfile) or die "Cannot open tap output file: $!";
+		print TAP $tapOutput . "\n";
+		close(TAP);
+EOF
+endfunction
+function! s:VimFlushOutput()
+	" Note: This always writes with a linefeed character at the end of a
+	" line, regardless of the 'fileformat' setting. Any TAP parser should
+	" handle Unix-style line endings, right? 
+	call writefile(s:tapOutput, s:tapOutputFilespec)
+	unlet s:tapOutput
+	autocmd! vimtap
+endfunction
+function! s:VimOutput( text )
+	if ! exists('s:tapOutput')
+		let s:tapOutput = []
+		augroup vimtap
+			autocmd!
+			autocmd VimLeavePre * call <SID>VimFlushOutput()
+		augroup END
+	endif
+	call add(s:tapOutput, a:text)
+endfunction
 function! s:Output( text )
 	if empty(s:tapOutputFilespec)
 		execute "normal i" . a:text . "\<CR>"
+	elseif has('perl')
+		call s:PerlOutput(a:text)
 	else
-		perl << EOF
-			my ($status, $tapfile) = VIM::Eval('s:tapOutputFilespec');
-			die "Didn't receive tap output filespec!" unless $status;
-			my ($status, $tapOutput) = VIM::Eval('a:text');
-			die "Didn't receive tap output!" unless $status;
-
-			open(TAP, '>>', $tapfile) or die "Cannot open tap output file: $!";
-			print TAP $tapOutput . "\n";
-			close(TAP);
-EOF
+		call s:VimOutput(a:text)
 	endif
 endfunction
 
