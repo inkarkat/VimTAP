@@ -29,19 +29,36 @@ function! vimtap#file#IsFilename( exp, description )
     call vimtap#Is(expand('%:t'), a:exp, a:description)
 endfunction
 
+function! s:Canonicalize( filespec )
+    return substitute(a:filespec, '\\', '/', 'g')
+endfunction
+function! vimtap#file#FilespecMatch( got, exp )
+    if s:Canonicalize(a:got) =~# '\V' . s:Canonicalize(a:exp) . '\$'
+	return [1, '']
+    else
+	return [0, "'" . s:Canonicalize(a:got) . "'\ndoes not match '" . s:Canonicalize(a:exp) . "'"]
+    endif
+endfunction
 function! vimtap#file#IsFilespec( ... )
     if a:0 == 3
 	let l:got = fnamemodify(a:1, ':p')
 	let l:exp = a:2
 	let l:description = a:3
+	let l:what = 'filespec'
     elseif a:0 == 2
 	let l:got = expand('%:p')
 	let l:exp = a:1
 	let l:description = a:2
+	let l:what = 'current file'
     else
 	throw 'ASSERT: Must supply 2 or 3 arguments. '
     endif
-    call vimtap#Like(substitute(l:got, '\\', '/', 'g'), '.*\V' . substitute(l:exp, '\\', '/', 'g') . '\$', l:description)
+
+    let [l:isMatch, l:diag] =  vimtap#file#FilespecMatch(l:got, l:exp)
+    call vimtap#Ok(l:isMatch, l:description)
+    if ! l:isMatch
+	call vimtap#Diag("Test '" . strtrans(l:description) . "' failed:\n" . l:what . ' ' . l:diag)
+    endif
 endfunction
 
 function! vimtap#file#IsFile( description )
