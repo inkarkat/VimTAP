@@ -22,6 +22,7 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS 
+"	002	03-Feb-2009	Added IsFile() and IsNoFile(). 
 "	001	30-Jan-2009	file creation
 
 function! vimtap#file#IsFilename( exp, description ) 
@@ -41,6 +42,13 @@ function! vimtap#file#IsFilespec( ... )
 	throw 'ASSERT: Must supply 2 or 3 arguments. '
     endif
     call vimtap#Like(substitute(l:got, '\\', '/', 'g'), '.*\V' . substitute(l:exp, '\\', '/', 'g') . '\$', l:description)
+endfunction
+
+function! vimtap#file#IsFile( description )
+    call vimtap#Ok(filereadable(expand('%:p')), a:description . ' (file exists)')
+endfunction
+function! vimtap#file#IsNoFile( description )
+    call vimtap#Ok(! filereadable(expand('%')), a:description . ' (no file)')
 endfunction
 
 " vim: set sts=4 sw=4 noexpandtab ff=unix fdm=syntax :
