@@ -80,16 +80,23 @@ function! vimtap#Output( filespec )
 endfunction
 
 function! s:PerlOutput( text )
-	perl << EOF
-		my ($status, $tapfile) = VIM::Eval('s:tapOutputFilespec');
-		die "Didn't receive tap output filespec!" unless $status;
-		my ($status, $tapOutput) = VIM::Eval('a:text');
-		die "Didn't receive tap output!" unless $status;
+	if ! exists('s:isPerlInitialized')
+		perl << EOF
+			sub output
+			{
+				my ($status, $tapfile) = VIM::Eval('s:tapOutputFilespec');
+				die "Didn't receive tap output filespec!" unless $status;
+				my ($status, $tapOutput) = VIM::Eval('a:text');
+				die "Didn't receive tap output!" unless $status;
 
-		open(TAP, '>>', $tapfile) or die "Cannot open tap output file: $!";
-		print TAP $tapOutput . "\n";
-		close(TAP);
+				open(TAP, '>>', $tapfile) or die "Cannot open tap output file: $!";
+				print TAP $tapOutput . "\n";
+				close(TAP);
+			}
 EOF
+		let s:isPerlInitialized = 1
+	endif
+	perl 'output();'
 endfunction
 function! s:VimFlushOutput()
 	" Note: This always writes with a linefeed character at the end of a
