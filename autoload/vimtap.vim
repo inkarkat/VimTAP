@@ -51,9 +51,21 @@ set cpo&vim
 "
 let s:test_number = 0
 "### [ }}} ]
+"### VARIABLE s:tapOutputFilespec [ {{{ ]
+" Description:
+" Filespec to which the TAP output is written; if empty, it is inserted into the
+" current buffer. 
+"
+let s:tapOutputFilespec = ''
+"### [ }}} ]
 "##### [ }}} ]
 
 "##### FUNCTIONS [ {{{ ]
+"### FUNCTION s:Quote [ {{{ ]
+" Description:
+" Quote the passed argument and convert it to a string. 
+"
+" Source:
 function! s:Quote( expr )
 	if type(a:expr) == type("")
 		return "'" . strtrans(a:expr) . "'"
@@ -61,24 +73,13 @@ function! s:Quote( expr )
 		return string(a:expr)
 	endif
 endfunction
-
-let s:tapOutputFilespec = ''
-function! vimtap#Output( filespec )
-	if ! empty(s:tapOutputFilespec) && ! has('perl')
-		call s:VimFlushOutput()
-	endif
-
-	" Reset test numbering. 
-	let s:test_number = 0
-
-	let s:tapOutputFilespec = a:filespec
-	if ! empty(s:tapOutputFilespec)
-		" Convert to full path so that changes of CWD do not affect the test
-		" output. 
-		let s:tapOutputFilespec = fnamemodify(s:tapOutputFilespec, ':p')
-	endif
-endfunction
-
+"### [ }}} ]
+"### FUNCTION s:PerlOutput [ {{{ ]
+" Description:
+" Perl output implementation. 
+" Each piece of text is written individually to the output file. 
+"
+" Source:
 function! s:PerlOutput( text )
 	if ! exists('s:isPerlInitialized')
 		perl << EOF
@@ -98,6 +99,12 @@ EOF
 	endif
 	perl 'output();'
 endfunction
+"### [ }}} ]
+"### FUNCTION s:VimFlushOutput [ {{{ ]
+" Description:
+" Vim output implementation: Final flush to the output file. 
+"
+" Source:
 function! s:VimFlushOutput()
 	" Note: This always writes with a linefeed character at the end of a
 	" line, regardless of the 'fileformat' setting. Any TAP parser should
@@ -106,6 +113,14 @@ function! s:VimFlushOutput()
 	unlet s:tapOutput
 	autocmd! vimtap
 endfunction
+"### [ }}} ]
+"### FUNCTION s:VimOutput [ {{{ ]
+" Description:
+" Vim output implementation. 
+" Each piece of text is appended to an internal list variable, then flushed out
+" to the output file when the output file is changed or Vim is closed. 
+"
+" Source:
 function! s:VimOutput( text )
 	if ! exists('s:tapOutput')
 		let s:tapOutput = []
@@ -116,6 +131,12 @@ function! s:VimOutput( text )
 	endif
 	call add(s:tapOutput, a:text)
 endfunction
+"### [ }}} ]
+"### FUNCTION s:Output [ {{{ ]
+" Description:
+" Output one piece of text. Chooses output implementation based on existing capabilities. 
+"
+" Source:
 function! s:Output( text )
 	if empty(s:tapOutputFilespec)
 		execute "normal i" . a:text . "\<CR>"
@@ -125,7 +146,31 @@ function! s:Output( text )
 		call s:VimOutput(a:text)
 	endif
 endfunction
+"### [ }}} ]
+"### FUNCTION vimtap#Output [ {{{ ]
+" Description:
+" Set a file (or the current buffer) to which the TAP output is written. 
+"
+" Example:
+"   call vimtap#Output('/tmp/test.tap')
+"
+" Source:
+function! vimtap#Output( filespec )
+	if ! empty(s:tapOutputFilespec) && ! has('perl')
+		call s:VimFlushOutput()
+	endif
 
+	" Reset test numbering. 
+	let s:test_number = 0
+
+	let s:tapOutputFilespec = a:filespec
+	if ! empty(s:tapOutputFilespec)
+		" Convert to full path so that changes of CWD do not affect the test
+		" output. 
+		let s:tapOutputFilespec = fnamemodify(s:tapOutputFilespec, ':p')
+	endif
+endfunction
+"### [ }}} ]
 "### FUNCTION vimtap#Plan [ {{{ ]
 " Description:
 " Write the test plan to the output buffer.
