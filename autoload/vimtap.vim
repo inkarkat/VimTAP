@@ -97,7 +97,7 @@ function! s:PerlOutput( text )
 EOF
 		let s:isPerlInitialized = 1
 	endif
-	perl 'output();'
+	perl output();
 endfunction
 "### [ }}} ]
 "### FUNCTION s:VimFlushOutput [ {{{ ]
