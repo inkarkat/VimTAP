@@ -31,7 +31,7 @@ function! vimtap#window#IsWindows( expectedFileList, description )
 
     let l:isFailure = 0
     let l:diag = ''
-    for l:i in range(0, l:expectedFileNum - 1)
+    for l:i in range(l:expectedFileNum)
 	let [l:isMatch, l:matchDiag] = vimtap#file#FilespecMatch(get(l:actualFileList, l:i, ''), a:expectedFileList[l:i])
 	if ! l:isMatch
 	    let l:isFailure = 1
