@@ -3,11 +3,11 @@
 " DESCRIPTION:
 " USAGE:
 " INSTALLATION:
-"   Put the script into your user or system VIM plugin directory (e.g.
-"   ~/.vim/plugin). 
+"   Put the script into your user or system Vim autoload directory (e.g.
+"   ~/.vim/autoload). 
 
 " DEPENDENCIES:
-"   - Requires VIM 7.0 or higher. 
+"   - Requires Vim 7.0 or higher. 
 
 " CONFIGURATION:
 " INTEGRATION:
@@ -33,20 +33,20 @@ function! s:Canonicalize( filespec )
     return substitute(a:filespec, '\\', '/', 'g')
 endfunction
 function! vimtap#file#FilespecMatch( got, exp )
-    if s:Canonicalize(a:got) =~# '\V' . s:Canonicalize(a:exp) . '\$'
+    if s:Canonicalize(fnamemodify(a:got, ':p')) =~# '\V' . s:Canonicalize(a:exp) . '\$'
 	return [1, '']
     else
-	return [0, "'" . s:Canonicalize(a:got) . "'\ndoes not match '" . s:Canonicalize(a:exp) . "'"]
+	return [0, "'" . a:got . "'\ndoes not match '" . a:exp . "'"]
     endif
 endfunction
 function! vimtap#file#IsFilespec( ... )
     if a:0 == 3
-	let l:got = fnamemodify(a:1, ':p')
+	let l:got = a:1
 	let l:exp = a:2
 	let l:description = a:3
 	let l:what = 'filespec'
     elseif a:0 == 2
-	let l:got = expand('%:p')
+	let l:got = expand('%')
 	let l:exp = a:1
 	let l:description = a:2
 	let l:what = 'current file'
