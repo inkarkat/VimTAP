@@ -3,8 +3,8 @@
 " DESCRIPTION:
 " USAGE:
 " INSTALLATION:
-"   Put the script into your user or system Vim plugin directory (e.g.
-"   ~/.vim/plugin). 
+"   Put the script into your user or system Vim autoload directory (e.g.
+"   ~/.vim/autoload). 
 
 " DEPENDENCIES:
 "   - Requires Vim 7.0 or higher. 
@@ -50,6 +50,20 @@ function! vimtap#collections#IsSet( actualSet, expectedSet, description, ... )
     let l:actualIdx = 0
     let l:expectedIdx = 0
     while 1
+	if l:actualIdx >= l:actualNum
+	    for l:expectedIdx in range(l:expectedIdx, l:expectedNum - 1)
+		let l:isFailure = 1
+		let l:diag .= "\nmissing " . string(l:expectedSet[l:expectedIdx])
+	    endfor
+	    break
+	elseif l:expectedIdx >= l:expectedNum
+	    for l:actualIdx in range(l:actualIdx, l:actualNum - 1)
+		let l:isFailure = 1
+		let l:diag .= "\nextra   " . string(l:actualSet[l:actualIdx])
+	    endfor
+	    break
+	endif
+
 	if l:actualSet[l:actualIdx] == l:expectedSet[l:expectedIdx]
 	    let l:actualIdx += 1
 	    let l:expectedIdx += 1
@@ -61,18 +75,6 @@ function! vimtap#collections#IsSet( actualSet, expectedSet, description, ... )
 	    let l:isFailure = 1
 	    let l:diag .= "\nextra   " . string(l:actualSet[l:actualIdx])
 	    let l:actualIdx += 1
-	endif
-
-	if l:actualIdx >= l:actualNum
-	    for l:expectedIdx in range(l:expectedIdx, l:expectedNum - 1)
-		let l:diag .= "\nmissing " . string(l:expectedSet[l:expectedIdx])
-	    endfor
-	    break
-	elseif l:expectedIdx >= l:expectedNum
-	    for l:actualIdx in range(l:actualIdx, l:actualNum - 1)
-		let l:diag .= "\nextra   " . string(l:actualSet[l:actualIdx])
-	    endfor
-	    break
 	endif
     endwhile
 
