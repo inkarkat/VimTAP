@@ -22,11 +22,15 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS 
+"	003	09-Sep-2009	Added IsntFilename(). 
 "	002	03-Feb-2009	Added IsFile() and IsNoFile(). 
 "	001	30-Jan-2009	file creation
 
 function! vimtap#file#IsFilename( exp, description ) 
     call vimtap#Is(expand('%:t'), a:exp, a:description)
+endfunction
+function! vimtap#file#IsntFilename( exp, description ) 
+    call vimtap#Isnt(expand('%:t'), a:exp, a:description)
 endfunction
 
 function! s:Canonicalize( filespec )
