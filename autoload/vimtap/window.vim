@@ -3,8 +3,8 @@
 " DESCRIPTION:
 " USAGE:
 " INSTALLATION:
-"   Put the script into your user or system Vim plugin directory (e.g.
-"   ~/.vim/plugin). 
+"   Put the script into your user or system Vim autoload directory (e.g.
+"   ~/.vim/autoload). 
 
 " DEPENDENCIES:
 "   - Requires Vim 7.0 or higher. 
@@ -22,6 +22,8 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS 
+"	002	24-Jun-2009	BF: Off-by-one error in printing additional
+"				actual windows. 
 "	001	03-Feb-2009	file creation
 
 function! vimtap#window#IsWindows( expectedFileList, description )
@@ -44,7 +46,7 @@ function! vimtap#window#IsWindows( expectedFileList, description )
 	let l:diag .= "\nexpected " . l:expectedFileNum . ", " . 'but got ' . (l:actualFileNum < l:expectedFileNum ? 'only ' : '') . l:actualFileNum . ' windows' . (l:actualFileNum < l:expectedFileNum ? '' : '; additional windows:')
     endif
     if l:actualFileNum > l:expectedFileNum
-	for l:i in range(l:expectedFileNum, l:actualFileNum)
+	for l:i in range(l:expectedFileNum, l:actualFileNum - 1)
 	    let l:diag .= "\nwindow #" . (l:i + 1) . ": '" . l:actualFileList[l:i] . "'"
 	endfor
     endif
