@@ -22,9 +22,27 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS 
+"	002	09-Jan-2010	Added documentation. 
+"				Added vimtap#collections#contains(). 
 "	001	09-Jun-2009	file creation
 
 function! vimtap#collections#IsUniqueSet( actualSet, expectedSet, description )
+"*******************************************************************************
+"* PURPOSE:
+"   Tests whether all unique elements of a:expectedSet are contained in a:actualSet and
+"   vice versa, in any order. Both sets must contain the same elements in value;
+"   duplicates are removed. 
+"* ASSUMPTIONS / PRECONDITIONS:
+"   None. 
+"* EFFECTS / POSTCONDITIONS:
+"   None. 
+"* INPUTS:
+"   a:actualSet	    (Unsorted) list of actual items. 
+"   a:expectedSet   (Unsorted) list of expected items. 
+"   a:description   Description of test case. 
+"* RETURN VALUES: 
+"   None. 
+"*******************************************************************************
     let l:actualDict = {}
     for l:actual in a:actualSet
 	let l:actualDict[l:actual] = 1
@@ -37,7 +55,23 @@ function! vimtap#collections#IsUniqueSet( actualSet, expectedSet, description )
     return vimtap#collections#IsSet( keys(l:actualDict), keys(l:expectedDict), a:description, 1 )
 endfunction
 function! vimtap#collections#IsSet( actualSet, expectedSet, description, ... )
-    " a:1   isNoCopy	Flag to modify the passed sets in-place. 
+"*******************************************************************************
+"* PURPOSE:
+"   Tests whether all elements of a:expectedSet are contained in a:actualSet and
+"   vice versa, in any order. Both sets must contain the same elements, both in
+"   number and value. 
+"* ASSUMPTIONS / PRECONDITIONS:
+"   None. 
+"* EFFECTS / POSTCONDITIONS:
+"   None. 
+"* INPUTS:
+"   a:actualSet	    (Unsorted) list of actual items. 
+"   a:expectedSet   (Unsorted) list of expected items. 
+"   a:description   Description of test case. 
+"   a:1   isNoCopy  Flag to modify the passed sets in-place. 
+"* RETURN VALUES: 
+"   None. 
+"*******************************************************************************
     let l:actualSet   = sort( a:0 && a:1 ? a:actualSet   : copy(a:actualSet))
     let l:expectedSet = sort( a:0 && a:1 ? a:expectedSet : copy(a:expectedSet))
 
@@ -77,6 +111,55 @@ function! vimtap#collections#IsSet( actualSet, expectedSet, description, ... )
 	    let l:actualIdx += 1
 	endif
     endwhile
+
+    call vimtap#Ok(! l:isFailure, a:description)
+    if l:isFailure
+	call vimtap#Diag("Test '" . strtrans(a:description) . "' failed:" . l:diag)
+    endif
+endfunction
+
+function! vimtap#collections#contains( actual, expected, description )
+"*******************************************************************************
+"* PURPOSE:
+"   Tests whether all elements of a:expected are contained in a:actual in any
+"   order; i.e. whether a:expected is a subset of a:actual. 
+"   In case of Lists, the same element can be contained multiple times in
+"   a:expected; it must then be contained as least as many times in a:actual. 
+"* TODO:
+"   Implement for Dictionaries. 
+"* ASSUMPTIONS / PRECONDITIONS:
+"   None. 
+"* EFFECTS / POSTCONDITIONS:
+"   None. 
+"* INPUTS:
+"   a:actual	List or Dictionary of actual items. 
+"   a:expected	Same type as a:actual; List or Dictionary of expected items. 
+"   a:description   Description of test case. 
+"* RETURN VALUES: 
+"   None. 
+"*******************************************************************************
+    let l:usedIndices = {}
+    let l:isFailure = 0
+    let l:diag = ''
+
+    for l:item in a:expected
+	let l:startIndex = 0
+	while 1
+	    let l:index = index(a:actual, l:item, l:startIndex)
+	    if l:index == -1
+		let l:isFailure = 1
+		let l:diag .= "\nmissing " . string(l:item)
+		break
+	    else
+		if has_key(l:usedIndices, l:index)
+		    let l:startIndex = l:index + 1
+		else
+		    let l:usedIndices[l:index] = 1
+		    break
+		endif
+	    endif
+	endwhile
+    endfor
 
     call vimtap#Ok(! l:isFailure, a:description)
     if l:isFailure
