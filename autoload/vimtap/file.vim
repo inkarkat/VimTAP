@@ -22,6 +22,12 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS 
+"	005	25-Feb-2010	BUG: vimtap#file#IsFilespec() reported failure
+"				but identical paths when fnamemodify() does not
+"				expand a nonexisting a:got. Checking for this
+"				special case. 
+"				Added a simplify() call in s:Canonicalize() to
+"				anticipate mismatches with /paths/./like/this. 
 "	004	09-Feb-2010	BUG: vimtap#file#IsFilespec() didn't consider
 "				path boundaries when matching at the front. 
 "				Added documentation. 
@@ -51,12 +57,24 @@ function! vimtap#file#IsntFilename( exp, description )
 endfunction
 
 function! s:Canonicalize( filespec )
-    return substitute(a:filespec, '\\', '/', 'g')
+    return substitute(simplify(a:filespec), '\\', '/', 'g')
 endfunction
 function! vimtap#file#FilespecMatch( got, exp )
     let l:canonicalExp = s:Canonicalize(a:exp)
     let l:canonicalPathDelimitedExp = (l:canonicalExp =~# '^/' ? '' : '/') . l:canonicalExp
-    if s:Canonicalize(fnamemodify(a:got, ':p')) =~# '\V' . l:canonicalPathDelimitedExp . '\$'
+    " To compare the filespecs, we must first expand whatever we got into a
+    " full filespec. 
+    let l:got = fnamemodify(a:got, ':p')
+
+    if s:Canonicalize(l:got) =~# '\V' . l:canonicalPathDelimitedExp . '\$'
+	return [1, '']
+    elseif l:got ==# a:got && s:Canonicalize(l:got) ==# l:canonicalExp
+	" If a:got does not exist, the expansion via fnamemodify() may give up
+	" and return it unchanged (especially on Linux). In this case, the
+	" original comparison may fail because no path components have been
+	" preprended, so l:got may not start with '/' (what we prepend to a:exp
+	" to make it a path-delimited match). Detect this special situation and
+	" compare both for equality instead. 
 	return [1, '']
     else
 	return [0, "'" . a:got . "'\ndoes not match '" . a:exp . "'"]
