@@ -306,6 +306,7 @@ function! vimtap#Is(got, exp, description)
 					\ . "but got:  '%s'",
 					\ a:description, vimtap#Quote(a:exp), vimtap#Quote(a:got))
 	endif
+	return test_result
 endfunction
 "### [ }}} ]
 "### FUNCTION vimtap#Isnt [ {{{ ]
@@ -326,6 +327,7 @@ function! vimtap#Isnt(got, unexp, description)
 					\ . "got unexpected: '%s'",
 					\ a:description, vimtap#Quote(a:got))
 	endif
+	return test_result
 endfunction
 "### [ }}} ]
 "### FUNCTION vimtap#Like [ {{{ ]
@@ -348,6 +350,7 @@ function! vimtap#Like(got, re, description)
 					\ . "does not match: /%s/",
 					\ a:description, vimtap#Quote(a:got), a:re)
 	endif
+	return test_result
 endfunction
 "### [ }}} ]
 "### FUNCTION vimtap#Unlike [ {{{ ]
@@ -368,6 +371,7 @@ function! vimtap#Unlike(got, re, description)
 					\ . "does match: /%s/",
 					\ a:description, vimtap#Quote(a:got), a:re)
 	endif
+	return test_result
 endfunction
 "### [ }}} ]
 "### FUNCTION vimtap#Pass [ {{{ ]
