@@ -1,11 +1,11 @@
 "##### HEADER [ {{{ ]
 " Plugin:       VimTAP
-" Version:      0.3
+" Version:      0.3ingo1
 " Author:       Meikel Brandmeyer <mb@kotka.de>
 " Created:      Sat Apr 12 20:53:41 2008
 "
 " License:
-" Copyright (c) 2008,2009 Meikel Brandmeyer, Frankfurt am Main
+" Copyright (c) 2008-2012 Meikel Brandmeyer, Frankfurt am Main
 " 
 " All rights reserved.
 " 
@@ -105,13 +105,24 @@ function! vimtap#StandardHarness.ok(test_result, description) dict
 				\ ? self.test_failed : 1
 
 	if self.todos > 0
-		let desc = printf("# TODO %s", a:description)
+		let desc = "# TODO"
+		if a:description != ""
+			let desc .= " " . a:description
+		endif
 		let self.todos = self.todos - 1
 	else
-		let desc = printf("- %s", a:description)
+		if a:description != ""
+			let desc = printf("- %s", a:description)
+		else
+			let desc = ""
+		endif
 	endif
 
-	call self.print("%s %d %s", result, self.test, desc)
+	let result .= " " . self.test
+	if desc != ""
+		let result .= " " . desc
+	endif
+	call self.print(result)
 
 	let self.test = self.test + 1
 endfunction
