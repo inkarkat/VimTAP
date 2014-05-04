@@ -1,58 +1,45 @@
-" TODO: summary
+" vimtap#file.vim: VimTAP assertions for files.
 "
-" DESCRIPTION:
-" USAGE:
-" INSTALLATION:
-"   Put the script into your user or system Vim autoload directory (e.g.
-"   ~/.vim/autoload). 
-
 " DEPENDENCIES:
-"   - Requires Vim 7.0 or higher. 
-
-" CONFIGURATION:
-" INTEGRATION:
-" LIMITATIONS:
-" ASSUMPTIONS:
-" KNOWN PROBLEMS:
-" TODO:
+"   - Requires Vim 7.0 or higher.
 "
-" Copyright: (C) 2009-2010 by Ingo Karkat
-"   The VIM LICENSE applies to this script; see ':help copyright'. 
+" Copyright: (C) 2009-2010 Ingo Karkat
+"   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
-" REVISION	DATE		REMARKS 
+" REVISION	DATE		REMARKS
 "	005	25-Feb-2010	BUG: vimtap#file#IsFilespec() reported failure
 "				but identical paths when fnamemodify() does not
 "				expand a nonexisting a:got. Checking for this
-"				special case. 
+"				special case.
 "				Added a simplify() call in s:Canonicalize() to
-"				anticipate mismatches with /paths/./like/this. 
+"				anticipate mismatches with /paths/./like/this.
 "	004	09-Feb-2010	BUG: vimtap#file#IsFilespec() didn't consider
-"				path boundaries when matching at the front. 
-"				Added documentation. 
-"	003	09-Sep-2009	Added IsntFilename(). 
-"	002	03-Feb-2009	Added IsFile() and IsNoFile(). 
+"				path boundaries when matching at the front.
+"				Added documentation.
+"	003	09-Sep-2009	Added IsntFilename().
+"	002	03-Feb-2009	Added IsFile() and IsNoFile().
 "	001	30-Jan-2009	file creation
 
-function! vimtap#file#IsFilename( exp, description ) 
+function! vimtap#file#IsFilename( exp, description )
 "*******************************************************************************
 "* PURPOSE:
-"   Tests whether the current buffer has a particular filename. 
+"   Tests whether the current buffer has a particular filename.
 "
 "* ASSUMPTIONS / PRECONDITIONS:
-"   None. 
+"   None.
 "* EFFECTS / POSTCONDITIONS:
-"   None. 
+"   None.
 "* INPUTS:
-"   a:exp   Expected filename (without paths). 
-"   a:description   Description. 
-"* RETURN VALUES: 
-"   None. 
+"   a:exp   Expected filename (without paths).
+"   a:description   Description.
+"* RETURN VALUES:
+"   None.
 "*******************************************************************************
     call vimtap#Is(expand('%:t'), a:exp, a:description)
 endfunction
-function! vimtap#file#IsntFilename( exp, description ) 
+function! vimtap#file#IsntFilename( exp, description )
     call vimtap#Isnt(expand('%:t'), a:exp, a:description)
 endfunction
 
@@ -63,7 +50,7 @@ function! vimtap#file#FilespecMatch( got, exp )
     let l:canonicalExp = s:Canonicalize(a:exp)
     let l:canonicalPathDelimitedExp = (l:canonicalExp =~# '^/' ? '' : '/') . l:canonicalExp
     " To compare the filespecs, we must first expand whatever we got into a
-    " full filespec. 
+    " full filespec.
     let l:got = fnamemodify(a:got, ':p')
 
     if s:Canonicalize(l:got) =~# '\V' . l:canonicalPathDelimitedExp . '\$'
@@ -74,7 +61,7 @@ function! vimtap#file#FilespecMatch( got, exp )
 	" original comparison may fail because no path components have been
 	" preprended, so l:got may not start with '/' (what we prepend to a:exp
 	" to make it a path-delimited match). Detect this special situation and
-	" compare both for equality instead. 
+	" compare both for equality instead.
 	return [1, '']
     else
 	return [0, "'" . a:got . "'\ndoes not match '" . a:exp . "'"]
@@ -85,21 +72,21 @@ function! vimtap#file#IsFilespec( ... )
 "* PURPOSE:
 "   Tests whether the passed or current filespec matches with the expected
 "   filespec fragment, taking into consideration different path separators and
-"   different base paths. 
+"   different base paths.
 "
 "* ASSUMPTIONS / PRECONDITIONS:
-"   None. 
+"   None.
 "* EFFECTS / POSTCONDITIONS:
-"   None. 
+"   None.
 "* INPUTS:
 "   a:got   Optional: Actual filespec or current buffer's filespec. Is expanded
-"	    to full path automatically. 
+"	    to full path automatically.
 "   a:exp   Expected filespec (fragment). Is anchored at the end and must match
 "	    on path boundaries; i.e. "bar.txt" will match "foo/bar.txt" but not
-"	    "foobar.txt". 
-"   a:description   Description. 
-"* RETURN VALUES: 
-"   None. 
+"	    "foobar.txt".
+"   a:description   Description.
+"* RETURN VALUES:
+"   None.
 "*******************************************************************************
     if a:0 == 3
 	let l:got = a:1
@@ -125,15 +112,15 @@ endfunction
 function! vimtap#file#IsFile( description )
 "*******************************************************************************
 "* PURPOSE:
-"   Tests whether the current buffer has been persisted to the file system. 
+"   Tests whether the current buffer has been persisted to the file system.
 "* ASSUMPTIONS / PRECONDITIONS:
-"   None. 
+"   None.
 "* EFFECTS / POSTCONDITIONS:
-"   None. 
+"   None.
 "* INPUTS:
-"   a:description   Description. 
-"* RETURN VALUES: 
-"   None. 
+"   a:description   Description.
+"* RETURN VALUES:
+"   None.
 "*******************************************************************************
     call vimtap#Ok(filereadable(expand('%:p')), a:description . ' (file exists)')
 endfunction
