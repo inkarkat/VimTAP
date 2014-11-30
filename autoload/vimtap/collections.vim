@@ -3,12 +3,13 @@
 " DEPENDENCIES:
 "   - Requires Vim 7.0 or higher.
 
-" Copyright: (C) 2009-2013 Ingo Karkat
+" Copyright: (C) 2009-2014 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"	004	01-Dec-2014	Add vimtap#collections#DoesNotContain().
 "	003	23-Jan-2013	Rename to vimtap#collections#Contains() for
 "				consistency with the other VimTAP functions.
 "	002	09-Jan-2010	Added documentation.
@@ -148,6 +149,40 @@ function! vimtap#collections#Contains( actual, expected, description )
 		endif
 	    endif
 	endwhile
+    endfor
+
+    call vimtap#Ok(! l:isFailure, a:description)
+    if l:isFailure
+	call vimtap#Diag("Test '" . strtrans(a:description) . "' failed:" . l:diag)
+    endif
+endfunction
+function! vimtap#collections#DoesNotContain( actual, expected, description )
+"*******************************************************************************
+"* PURPOSE:
+"   Tests whether none of the elements of a:expected are contained in a:actual in any
+"   order; i.e. whether a:expected and a:actual are disjunct.
+"* TODO:
+"   Implement for Dictionaries.
+"* ASSUMPTIONS / PRECONDITIONS:
+"   None.
+"* EFFECTS / POSTCONDITIONS:
+"   None.
+"* INPUTS:
+"   a:actual	List or Dictionary of actual items.
+"   a:expected	Same type as a:actual; List or Dictionary of expected items.
+"   a:description   Description of test case.
+"* RETURN VALUES:
+"   None.
+"*******************************************************************************
+    let l:isFailure = 0
+    let l:diag = ''
+
+    for l:item in a:expected
+	let l:index = index(a:actual, l:item)
+	if l:index != -1
+	    let l:isFailure = 1
+	    let l:diag .= "\nextra " . string(l:item)
+	endif
     endfor
 
     call vimtap#Ok(! l:isFailure, a:description)
