@@ -1,29 +1,18 @@
-" TODO: summary
+" vimtap/collections.vim: VimTAP assertions for collections.
 "
-" DESCRIPTION:
-" USAGE:
-" INSTALLATION:
-"   Put the script into your user or system Vim autoload directory (e.g.
-"   ~/.vim/autoload). 
-
 " DEPENDENCIES:
-"   - Requires Vim 7.0 or higher. 
+"   - Requires Vim 7.0 or higher.
 
-" CONFIGURATION:
-" INTEGRATION:
-" LIMITATIONS:
-" ASSUMPTIONS:
-" KNOWN PROBLEMS:
-" TODO:
-"
-" Copyright: (C) 2009 by Ingo Karkat
-"   The VIM LICENSE applies to this script; see ':help copyright'. 
+" Copyright: (C) 2009-2013 Ingo Karkat
+"   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
-" REVISION	DATE		REMARKS 
-"	002	09-Jan-2010	Added documentation. 
-"				Added vimtap#collections#contains(). 
+" REVISION	DATE		REMARKS
+"	003	23-Jan-2013	Rename to vimtap#collections#Contains() for
+"				consistency with the other VimTAP functions.
+"	002	09-Jan-2010	Added documentation.
+"				Added vimtap#collections#contains().
 "	001	09-Jun-2009	file creation
 
 function! vimtap#collections#IsUniqueSet( actualSet, expectedSet, description )
@@ -31,17 +20,17 @@ function! vimtap#collections#IsUniqueSet( actualSet, expectedSet, description )
 "* PURPOSE:
 "   Tests whether all unique elements of a:expectedSet are contained in a:actualSet and
 "   vice versa, in any order. Both sets must contain the same elements in value;
-"   duplicates are removed. 
+"   duplicates are removed.
 "* ASSUMPTIONS / PRECONDITIONS:
-"   None. 
+"   None.
 "* EFFECTS / POSTCONDITIONS:
-"   None. 
+"   None.
 "* INPUTS:
-"   a:actualSet	    (Unsorted) list of actual items. 
-"   a:expectedSet   (Unsorted) list of expected items. 
-"   a:description   Description of test case. 
-"* RETURN VALUES: 
-"   None. 
+"   a:actualSet	    (Unsorted) list of actual items.
+"   a:expectedSet   (Unsorted) list of expected items.
+"   a:description   Description of test case.
+"* RETURN VALUES:
+"   None.
 "*******************************************************************************
     let l:actualDict = {}
     for l:actual in a:actualSet
@@ -59,18 +48,18 @@ function! vimtap#collections#IsSet( actualSet, expectedSet, description, ... )
 "* PURPOSE:
 "   Tests whether all elements of a:expectedSet are contained in a:actualSet and
 "   vice versa, in any order. Both sets must contain the same elements, both in
-"   number and value. 
+"   number and value.
 "* ASSUMPTIONS / PRECONDITIONS:
-"   None. 
+"   None.
 "* EFFECTS / POSTCONDITIONS:
-"   None. 
+"   None.
 "* INPUTS:
-"   a:actualSet	    (Unsorted) list of actual items. 
-"   a:expectedSet   (Unsorted) list of expected items. 
-"   a:description   Description of test case. 
-"   a:1   isNoCopy  Flag to modify the passed sets in-place. 
-"* RETURN VALUES: 
-"   None. 
+"   a:actualSet	    (Unsorted) list of actual items.
+"   a:expectedSet   (Unsorted) list of expected items.
+"   a:description   Description of test case.
+"   a:1   isNoCopy  Flag to modify the passed sets in-place.
+"* RETURN VALUES:
+"   None.
 "*******************************************************************************
     let l:actualSet   = sort( a:0 && a:1 ? a:actualSet   : copy(a:actualSet))
     let l:expectedSet = sort( a:0 && a:1 ? a:expectedSet : copy(a:expectedSet))
@@ -118,25 +107,25 @@ function! vimtap#collections#IsSet( actualSet, expectedSet, description, ... )
     endif
 endfunction
 
-function! vimtap#collections#contains( actual, expected, description )
+function! vimtap#collections#Contains( actual, expected, description )
 "*******************************************************************************
 "* PURPOSE:
 "   Tests whether all elements of a:expected are contained in a:actual in any
-"   order; i.e. whether a:expected is a subset of a:actual. 
+"   order; i.e. whether a:expected is a subset of a:actual.
 "   In case of Lists, the same element can be contained multiple times in
-"   a:expected; it must then be contained as least as many times in a:actual. 
+"   a:expected; it must then be contained as least as many times in a:actual.
 "* TODO:
-"   Implement for Dictionaries. 
+"   Implement for Dictionaries.
 "* ASSUMPTIONS / PRECONDITIONS:
-"   None. 
+"   None.
 "* EFFECTS / POSTCONDITIONS:
-"   None. 
+"   None.
 "* INPUTS:
-"   a:actual	List or Dictionary of actual items. 
-"   a:expected	Same type as a:actual; List or Dictionary of expected items. 
-"   a:description   Description of test case. 
-"* RETURN VALUES: 
-"   None. 
+"   a:actual	List or Dictionary of actual items.
+"   a:expected	Same type as a:actual; List or Dictionary of expected items.
+"   a:description   Description of test case.
+"* RETURN VALUES:
+"   None.
 "*******************************************************************************
     let l:usedIndices = {}
     let l:isFailure = 0
