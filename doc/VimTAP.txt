@@ -1,7 +1,6 @@
+*VimTAP.txt*            Test Anything Protocol for Vim
 
                             VimTAP
-
-                                            *VimTAP*
 
 VimTAP is an implementation of the Test Anything Protocol for Vim. It is
 intended to provide an easy way to test your Vim scripts and functions.
@@ -221,6 +220,7 @@ unfortunate limitation of Vim. >
 
 13. License                                 *VimTAPLicense*
 
+Copyright (c) 2013-2020 Ingo Karkat
 Copyright (c) 2008,2009 Meikel Brandmeyer, Frankfurt am Main
 
 All rights reserved.
