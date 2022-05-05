@@ -3,18 +3,23 @@
 " DEPENDENCIES:
 "   - Requires Vim 7.0 or higher.
 
-" Copyright: (C) 2009-2014 Ingo Karkat
+" Copyright: (C) 2009-2021 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
 "	004	01-Dec-2014	Add vimtap#collections#DoesNotContain().
+"				Implement vimtap#collections#DoesNotContain()
+"				and vimtap#collections#Contains() for
+"				Dictionaries.
 "	003	23-Jan-2013	Rename to vimtap#collections#Contains() for
 "				consistency with the other VimTAP functions.
 "	002	09-Jan-2010	Added documentation.
 "				Added vimtap#collections#contains().
 "	001	09-Jun-2009	file creation
+let s:save_cpo = &cpo
+set cpo&vim
 
 function! vimtap#collections#IsUniqueSet( actualSet, expectedSet, description )
 "*******************************************************************************
@@ -115,8 +120,6 @@ function! vimtap#collections#Contains( actual, expected, description )
 "   order; i.e. whether a:expected is a subset of a:actual.
 "   In case of Lists, the same element can be contained multiple times in
 "   a:expected; it must then be contained as least as many times in a:actual.
-"* TODO:
-"   Implement for Dictionaries.
 "* ASSUMPTIONS / PRECONDITIONS:
 "   None.
 "* EFFECTS / POSTCONDITIONS:
@@ -128,28 +131,38 @@ function! vimtap#collections#Contains( actual, expected, description )
 "* RETURN VALUES:
 "   None.
 "*******************************************************************************
-    let l:usedIndices = {}
+    let l:isDict = (type(a:expected) == type({}))
     let l:isFailure = 0
     let l:diag = ''
 
-    for l:item in a:expected
-	let l:startIndex = 0
-	while 1
-	    let l:index = index(a:actual, l:item, l:startIndex)
-	    if l:index == -1
+    if l:isDict
+	for l:item in items(a:expected)
+	    if ! s:IsInDict(a:actual, l:item)
 		let l:isFailure = 1
 		let l:diag .= "\nmissing " . string(l:item)
-		break
-	    else
-		if has_key(l:usedIndices, l:index)
-		    let l:startIndex = l:index + 1
-		else
-		    let l:usedIndices[l:index] = 1
-		    break
-		endif
 	    endif
-	endwhile
-    endfor
+	endfor
+    else
+	let l:usedIndices = {}
+	for l:item in a:expected
+	    let l:startIndex = 0
+	    while 1
+		let l:index = index(a:actual, l:item, l:startIndex)
+		if l:index == -1
+		    let l:isFailure = 1
+		    let l:diag .= "\nmissing " . string(l:item)
+		    break
+		else
+		    if has_key(l:usedIndices, l:index)
+			let l:startIndex = l:index + 1
+		    else
+			let l:usedIndices[l:index] = 1
+			break
+		    endif
+		endif
+	    endwhile
+	endfor
+    endif
 
     call vimtap#Ok(! l:isFailure, a:description)
     if l:isFailure
@@ -161,8 +174,6 @@ function! vimtap#collections#DoesNotContain( actual, expected, description )
 "* PURPOSE:
 "   Tests whether none of the elements of a:expected are contained in a:actual in any
 "   order; i.e. whether a:expected and a:actual are disjunct.
-"* TODO:
-"   Implement for Dictionaries.
 "* ASSUMPTIONS / PRECONDITIONS:
 "   None.
 "* EFFECTS / POSTCONDITIONS:
@@ -174,12 +185,15 @@ function! vimtap#collections#DoesNotContain( actual, expected, description )
 "* RETURN VALUES:
 "   None.
 "*******************************************************************************
+    let l:isDict = (type(a:expected) == type({}))
     let l:isFailure = 0
     let l:diag = ''
 
-    for l:item in a:expected
-	let l:index = index(a:actual, l:item)
-	if l:index != -1
+    for l:item in (l:isDict ? items(a:expected) : a:expected)
+	if (l:isDict ?
+	\   s:IsInDict(a:actual, l:item) :
+	\   index(a:actual, l:item) != -1
+	\)
 	    let l:isFailure = 1
 	    let l:diag .= "\nextra " . string(l:item)
 	endif
@@ -190,5 +204,10 @@ function! vimtap#collections#DoesNotContain( actual, expected, description )
 	call vimtap#Diag("Test '" . strtrans(a:description) . "' failed:" . l:diag)
     endif
 endfunction
+function! s:IsInDict( dict, item )
+    return (has_key(a:dict, a:item[0]) && a:dict[a:item[0]] ==# a:item[1])
+endfunction
 
+let &cpo = s:save_cpo
+unlet s:save_cpo
 " vim: set ts=8 sts=4 sw=4 noexpandtab ff=unix fdm=syntax :
