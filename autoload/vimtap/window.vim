@@ -1,29 +1,16 @@
-" TODO: summary
+" vimtap#window.vim: VimTAP assertions for windows.
 "
-" DESCRIPTION:
-" USAGE:
-" INSTALLATION:
-"   Put the script into your user or system Vim autoload directory (e.g.
-"   ~/.vim/autoload). 
-
 " DEPENDENCIES:
-"   - Requires Vim 7.0 or higher. 
-
-" CONFIGURATION:
-" INTEGRATION:
-" LIMITATIONS:
-" ASSUMPTIONS:
-" KNOWN PROBLEMS:
-" TODO:
+"   - Requires Vim 7.0 or higher.
 "
-" Copyright: (C) 2009 by Ingo Karkat
-"   The VIM LICENSE applies to this script; see ':help copyright'. 
+" Copyright: (C) 2009 Ingo Karkat
+"   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
-" REVISION	DATE		REMARKS 
+" REVISION	DATE		REMARKS
 "	002	24-Jun-2009	BF: Off-by-one error in printing additional
-"				actual windows. 
+"				actual windows.
 "	001	03-Feb-2009	file creation
 
 function! vimtap#window#IsWindows( expectedFileList, description )
