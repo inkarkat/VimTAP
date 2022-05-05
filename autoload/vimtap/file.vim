@@ -3,12 +3,16 @@
 " DEPENDENCIES:
 "   - Requires Vim 7.0 or higher.
 "
-" Copyright: (C) 2009-2010 Ingo Karkat
+" Copyright: (C) 2009-2014 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"	006	05-May-2014	Use tr() instead of substitute().
+"				Add vimtap#file#Is() for a simple canonicalized
+"				comparison without simplification or path
+"				conversion.
 "	005	25-Feb-2010	BUG: vimtap#file#IsFilespec() reported failure
 "				but identical paths when fnamemodify() does not
 "				expand a nonexisting a:got. Checking for this
@@ -43,8 +47,12 @@ function! vimtap#file#IsntFilename( exp, description )
     call vimtap#Isnt(expand('%:t'), a:exp, a:description)
 endfunction
 
+function! vimtap#file#Is( got, exp, description )
+    return vimtap#Is(tr(a:got, '\', '/'), tr(a:exp, '\', '/'), a:description)
+endfunction
+
 function! s:Canonicalize( filespec )
-    return substitute(simplify(a:filespec), '\\', '/', 'g')
+    return tr(simplify(a:filespec), '\', '/')
 endfunction
 function! vimtap#file#FilespecMatch( got, exp )
     let l:canonicalExp = s:Canonicalize(a:exp)
